@@ -63,3 +63,8 @@ timeman/
 urlrewrite.php
 ustat.php
 workgroups/
+local/game_state.json
+_index.php
+bx_reset-demo.php
+index_b24.php
+pass.php

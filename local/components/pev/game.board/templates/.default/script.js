@@ -1,22 +1,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     const dice = document.querySelector('.dice');
     const cells = document.querySelectorAll('.cell');
+    const resetButton = document.querySelector('.reset-button'); // Выбираем кнопку сброса
 
-    let diceResult = null; // Variable to store the result of the dice roll
-    let diceRolled = false; // Flag to track if dice has been rolled
+    let diceResult = null;
+    let diceRolled = false;
+    let currentState = null; // Объявляем переменную currentState в глобальной области видимости
 
     const randomDice = () => {
-        const random = Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
-        diceResult = random; // Store the result of the dice roll
+        const random = Math.floor(Math.random() * 6) + 1;
+        diceResult = random;
         rollDice(random);
-        diceRolled = true; // Set the flag to true after rolling the dice
+        diceRolled = true;
     }
 
     const rollDice = random => {
         dice.style.animation = 'rolling 4s';
-
         setTimeout(() => {
-            // Set the transform based on the dice result
             dice.style.transform = `rotateX(${getRotateX(random)}) rotateY(${getRotateY(random)})`;
             dice.style.animation = 'none';
         }, 4050);
@@ -41,31 +41,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to handle dice click event
     const diceClickHandler = () => {
-        if (!diceRolled) { // Check if dice has not been rolled yet
+        if (!diceRolled) {
             randomDice();
         }
     }
 
-    // Add click event listener to the dice
     dice.addEventListener('click', diceClickHandler);
 
-    // Function to handle cell click event
     const cellClickHandler = (event) => {
-        if (!diceRolled) { // Check if dice has been rolled
-            return; // If dice has not been rolled, do not allow cell insertion
+        if (!diceRolled) {
+            return;
         }
         const cell = event.target;
         const cellNumber = parseInt(cell.id.replace('cell', ''), 10);
-        if (!cell.textContent.trim()) { // Check if the cell is empty
-            cell.textContent = diceResult; // Set the content of the cell to the dice result
-            diceRolled = false; // Reset the flag after inserting value into a cell
+        if (!cell.textContent.trim()) {
+            cell.textContent = diceResult;
+            diceRolled = false;
         }
+
+        saveState(); // Вызываем метод сохранения состояния игрового поля после изменения
     }
 
-    // Add click event listener to each cell
     cells.forEach(cell => {
         cell.addEventListener('click', cellClickHandler);
     });
+
+    // Функция для сохранения состояния игрового поля через AJAX запрос
+    const saveState = () => {
+        currentState = []; // Обнуляем массив currentState
+        cells.forEach(cell => {
+            currentState.push(cell.textContent.trim() || null); // Добавляем содержимое каждой ячейки в массив
+        });
+console.log(currentState);
+        // Отправляем AJAX запрос на сохранение состояния
+        BX.ajax.runComponentAction('pev:game.board', 'saveState', {
+            mode: 'class',
+            data: { state: currentState }
+        })
+            .then(response => {
+                console.log('Состояние успешно сохранено:', response);
+            })
+            .catch(error => {
+                console.error('Ошибка при сохранении состояния:', error);
+            });
+    }
+
+    resetButton.addEventListener('click', () => {
+        cells.forEach(cell => {
+            cell.textContent = ''; // Очищаем содержимое каждой ячейки
+        });
+        currentState = []; // Обнуляем currentState
+
+        // Очищаем файл на сервере
+        clearGameStateFile();
+    });
+
+// Функция для очистки файла на сервере
+    const clearGameStateFile = () => {
+        // Отправляем AJAX запрос на очистку файла
+        BX.ajax.runComponentAction('pev:game.board', 'clearGameStateFile', {
+            mode: 'class'
+        })
+            .then(response => {
+                console.log('Файл игрового состояния успешно очищен:', response);
+            })
+            .catch(error => {
+                console.error('Ошибка при очистке файла игрового состояния:', error);
+            });
+    }
+
 });

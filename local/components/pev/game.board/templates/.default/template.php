@@ -25,8 +25,14 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 <div class="container">
 
     <div class="board">
-        <?php for ($i = 1; $i <= 9; $i++) { ?>
-            <div class="cell" id="cell<?= $i ?>"></div>
+        <?php for ($i = 0; $i <= 8; $i++) { ?>
+            <div class="cell" id="cell<?= $i ?>">
+                <?php
+                // Проверяем, есть ли значение для этой ячейки в текущем состоянии
+                $cellContent = $arResult['currentState'][$i] ?? '';
+                echo $cellContent;
+                ?>
+            </div>
         <?php } ?>
     </div>
 
@@ -43,7 +49,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 </div>
 
 
-
+<button class="reset-button">Сбросить</button>
 </body>
 
 </html>
